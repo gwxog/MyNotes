@@ -4,6 +4,8 @@ import json, time, os
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
 
 # 修改文件路径
 os.chdir(r'C:\Users\NOVA\Desktop\jinan')
@@ -171,8 +173,9 @@ print(computeCosSimilar(vocs1, vocs2))
 
 
 # 计算每30条数据的corr
-df1011 = df1[df1["sn"] == "B616-1013"]
+df1011 = df1[df1["sn"] == "B616-106D"]
 df1011["corr"] = 0
+df1011.index = range(df1011.shape[0])
 df1011.columns
 df1011.shape
 
@@ -181,7 +184,11 @@ for i in range(df1011.shape[0]):
 # for i in range(100):
     if i % 30 == 0 and i != 0:
         vocs1i = df1011.iloc[j:i, -5]
+        if vocs1i.sum() == 0:
+            vocs1i += 0.1  # 防止作为分母为0的错误
         vocs2i = df1011.iloc[j:i, -4]
+        if vocs2i.sum() == 0:
+            vocs2i += 0.1  # 防止作为分母为0的错误
         print(i, j)
         j = i
         corr = vocs1i.corr(vocs2i)
@@ -196,17 +203,23 @@ df1011[df1011["corr"] != 0]["corr"].mean()
 
 fig, ax1 = plt.subplots()
 
+plt.title("12月21日B616-106D设备VOCS和CORR走势图")
 ax1.plot(range(df1011.shape[0]), df1011['vocs1'], color='r', label='12月21日 vocs1')
-ax1.plot(range(df1011.shape[0]), df1011['vocs2'], color='b', label='12月21日 vocs1')
+ax1.plot(range(df1011.shape[0]), df1011['vocs2'], color='b', label='12月21日 vocs2')
 ax1.set_ylabel("Vocs")
 ax1.legend()
 
 ax2 = ax1.twinx()
-ax2.scatter(range(df1011.shape[0]), df1011['corr'], color='k', s=5, marker="+", label='12月21日 corr')
+# ax2.scatter(range(df1011.shape[0]), df1011['corr'], color='k', s=5, marker="+", label='12月21日 corr')
+
+x = [i for i in range(df1011.shape[0]) if i % 30 == 0 and i != 0]
+y = df1011[(df1011.index % 30 == 0).reshape(-1, 1) * (df1011.index != 0).reshape(-1, 1)]['corr']
+ax2.scatter(x, y, color='k', s=5, marker="+", label='12月21日 corr')
 ax2.set_ylabel("Corr")
 ax2.legend()
-ax2.set_ylim(0, 1)
+ax2.set_ylim(-1, 1)
 plt.show()
+
 
 
 
